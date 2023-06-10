@@ -13,9 +13,9 @@ def get_data(**kwargs):
     if params != "":
         url += "?" + params
 
-    print(url)
-
     response = requests.get(url)
+
+    return response
 
 def get_min_match_id(df):
     # To get minimun id from match id
@@ -24,19 +24,23 @@ def get_min_match_id(df):
 
     return min_match_id
 
-
-# COMMAND ----------
-
 def get_history_pro_matches(**kwargs):
+    
+    response = get_data()
+    df = spark.createDataFrame(response.json())
     min_match_id = get_min_match_id(df)
 
+    # make first interaction
     data = get_data(less_than_match_id=min_match_id)
 
-# COMMAND ----------
+    return data
 
-df = spark.createDataFrame(response.json())
-df.display()
 
 # COMMAND ----------
 
-df.coalesce(1).write.format("json").mode("append").save("/FileStore/tables/data/pro_matches_history")
+df1 = spark.createDataFrame(get_history_pro_matches().json())
+df1.display()
+
+# COMMAND ----------
+
+#df.coalesce(1).write.format("json").mode("append").save("/FileStore/tables/data/pro_matches_history")
